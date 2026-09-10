@@ -37,26 +37,20 @@
 		<div class="form-column col-sm-6">
 			<div class="page-header-actions-block" data-html-block="header-actions">
 				<p>
-					{% if enabled_checkout and (doc.doctype != "Sales Invoice" or doc.outstanding_amount > 0) %}
-					{% if doc.doctype == "Sales Invoice" %}
-					<!-- PR-Foundry/framework#107 (fork marker): the native make_payment_request
-						below gates on Sales Invoice DOCTYPE read permission, which portal
-						Website Users don't hold (they hold only website/ownership permission
-						via has_website_permission) -> PermissionError for real portal
-						customers. Route the Sales Invoice "Pay" button through client_app's
-						website-permission-gated wrapper instead; other doctypes (Sales Order,
-						etc.) still use the native endpoint below. Re-verify after any webshop
-						upstream-sync. -->
-					<a href="/api/method/client_app.api.portal.pay_invoice?name={{ doc.name }}"
+					{# PR-Foundry/framework#182 + #183 (fork marker). ONE endpoint for every payable
+					   doctype, and one paid-state predicate, both computed in order.py.
+
+					   The native link went straight to make_payment_request, which checks
+					   `Payment Request` create AND `<dt>` read -- neither of which a portal
+					   Customer holds -- so it 403'd for EVERY doctype, Sales Order included.
+					   Do not re-introduce a per-doctype branch here: the two tiers diverged
+					   precisely by each routing one doctype to its own client app.
+					   Re-verify after any webshop upstream-sync. #}
+					{% if show_pay_button %}
+					<a href="/api/method/webshop.webshop.portal.payment.pay_for_document?dt={{ doc.doctype | urlencode }}&dn={{ doc.name | urlencode }}"
 						class="btn btn-primary btn-sm" id="pay-for-order">
-						{{ _("Pay") }} {{doc.get_formatted("grand_total") }}
+						{{ _("Pay") }} {{ doc.get_formatted("grand_total") }}
 					</a>
-					{% else %}
-					<a href="/api/method/erpnext.accounts.doctype.payment_request.payment_request.make_payment_request?dn={{ doc.name }}&dt={{ doc.doctype }}&submit_doc=1&order_type=Shopping Cart"
-						class="btn btn-primary btn-sm" id="pay-for-order">
-						{{ _("Pay") }} {{doc.get_formatted("grand_total") }}
-					</a>
-					{% endif %}
 					{% endif %}
 				</p>
 			</div>

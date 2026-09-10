@@ -5,6 +5,7 @@ import frappe
 from frappe import _
 
 from webshop.webshop.doctype.webshop_settings.webshop_settings import show_attachments
+from webshop.webshop.portal.payment import is_payable
 
 
 def get_context(context):
@@ -24,6 +25,15 @@ def get_context(context):
 	)
 
 	context.enabled_checkout = frappe.get_doc("Webshop Settings").enable_checkout
+
+	# PR-Foundry/framework#182 + #183 (fork marker). The Pay affordance is decided HERE, by the
+	# same predicate the pay endpoint enforces, instead of by a per-doctype condition in the
+	# template. The old template test was
+	#     enabled_checkout and (doc.doctype != "Sales Invoice" or doc.outstanding_amount > 0)
+	# whose short-circuiting `or` meant the paid check only ever ran for Sales Invoice -- a fully
+	# paid Sales Order kept a working Pay button. is_payable() asks erpnext what it would charge,
+	# so the button is offered exactly when a non-zero Payment Request would be raised.
+	context.show_pay_button = bool(context.enabled_checkout) and is_payable(context.doc)
 
 	default_print_format = frappe.db.get_value(
 		"Property Setter",

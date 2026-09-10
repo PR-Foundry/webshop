@@ -524,6 +524,7 @@ def _set_price_list(cart_settings, quotation=None):
 def set_taxes(quotation, cart_settings):
 	"""set taxes based on billing territory"""
 	from erpnext.accounts.party import set_taxes
+	from erpnext.accounts.services.taxes import TaxService
 
 	customer_group = frappe.db.get_value(
 		"Customer", quotation.party_name, "customer_group"
@@ -541,13 +542,18 @@ def set_taxes(quotation, cart_settings):
 		shipping_address=quotation.shipping_address_name,
 		use_for_shopping_cart=1,
 	)
-	#
-	# 	# clear table
+	# clear table
 	quotation.set("taxes", [])
-	#
-	# 	# append taxes
-	quotation.append_taxes_from_master()
-	quotation.append_taxes_from_item_tax_template()
+
+	# PR-Foundry/framework#64 (fork marker): erpnext v16 moved these off the document
+	# controllers onto erpnext.accounts.services.taxes.TaxService (upstream e6f8f8f7e9,
+	# 2026-07-01). Upstream webshop still calls them as doc-methods, so once erpnext is
+	# synced past that refactor every add-to-cart raises
+	# `AttributeError: 'Quotation' object has no attribute 'append_taxes_from_master'`
+	# and a new customer can never create a cart. Re-verify after any webshop sync.
+	tax_service = TaxService(quotation)
+	tax_service.append_taxes_from_master()
+	tax_service.append_taxes_from_item_tax_template()
 
 
 def get_party(user=None):
