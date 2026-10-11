@@ -73,7 +73,7 @@ def _clean_timeline(t) -> dict | None:
 			if isinstance(e, dict)
 		],
 	}
-	# framework#268 extension (za-courier-guy delivery estimate): one optional plain line.
+	# framework#268: one optional plain estimate line.
 	estimate = t.get("estimate")
 	if isinstance(estimate, str) and estimate.strip():
 		out["estimate"] = _text(estimate)
