@@ -58,7 +58,7 @@ def _clean_timeline(t) -> dict | None:
 		reached = 0
 	reached = max(0, min(reached, len(steps) - 1)) if steps else 0
 	events = t.get("events") if isinstance(t.get("events"), list) else []
-	return {
+	out = {
 		"title": _text(t.get("title")),
 		"steps": steps,
 		"reached": reached,
@@ -73,6 +73,11 @@ def _clean_timeline(t) -> dict | None:
 			if isinstance(e, dict)
 		],
 	}
+	# framework#268 extension (za-courier-guy delivery estimate): one optional plain line.
+	estimate = t.get("estimate")
+	if isinstance(estimate, str) and estimate.strip():
+		out["estimate"] = _text(estimate)
+	return out
 
 
 def _clean(panel: dict) -> dict | None:

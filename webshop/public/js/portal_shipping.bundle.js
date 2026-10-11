@@ -150,6 +150,12 @@ webshop.portal_shipping = {
 			head.appendChild(badge);
 		}
 		wrap.appendChild(head);
+		if (tl.estimate) {
+			const estimate = document.createElement("div");
+			estimate.className = "small text-muted";
+			estimate.textContent = tl.estimate;
+			wrap.appendChild(estimate);
+		}
 
 		const steps = tl.steps || [];
 		const bar = document.createElement("div");
