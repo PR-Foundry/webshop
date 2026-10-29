@@ -102,7 +102,12 @@ def _owned_address(name):
 	refused = frappe.PermissionError(_("You cannot edit this address."))
 	if frappe.session.user == "Guest" or not name:
 		raise refused
-	party = get_party()
+	try:
+		party = get_party()
+	except frappe.Redirect:
+		# get_party redirects a user with no Customer when the cart is disabled. A party
+		# that cannot be resolved owns no address, so this is the same refusal (framework#336).
+		raise refused from None
 	if not party or not frappe.db.exists(
 		"Dynamic Link",
 		{
