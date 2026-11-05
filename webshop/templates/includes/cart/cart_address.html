@@ -201,6 +201,12 @@ frappe.ready(() => {
 					const $card = d.$wrapper.find('.address-card.active');
 					const address_type = $card.closest('[data-address-type]').attr('data-address-type');
 					const address_name = $card.closest('[data-address-name]').attr('data-address-name');
+					// Without a chosen card both values are undefined and the request carries
+					// no address at all (PR-Foundry/framework#357).
+					if (!address_name) {
+						frappe.msgprint(__("Tap an address to choose it."));
+						return;
+					}
 					frappe.call({
 						type: "POST",
 						method: "webshop.webshop.shopping_cart.cart.update_cart_address",
@@ -241,7 +247,7 @@ frappe.ready(() => {
 					<div class="row no-gutters" data-fieldname="customer_address">
 						{% for address in billing_addresses %}
 							<div class="mr-3 mb-3 w-100" data-address-name="{{address.name}}" data-address-type="billing"
-								{% if doc.shipping_address_name == address.name %} data-active {% endif %}>
+								{% if doc.customer_address == address.name %} data-active {% endif %}>
 								{% include "templates/includes/cart/address_picker_card.html" %}
 							</div>
 						{% endfor %}
@@ -257,6 +263,8 @@ frappe.ready(() => {
 			$(d.get_field('address_picker').wrapper).html(
 				get_address_template(type)
 			);
+			// Open with the address in use already chosen, as the page's own cards are.
+			d.$wrapper.find('[data-active] .address-card').addClass('active');
 
 			d.show();
 		});
