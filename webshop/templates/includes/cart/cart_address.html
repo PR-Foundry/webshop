@@ -189,6 +189,11 @@ frappe.ready(() => {
 
 <script>
 	frappe.ready(() => {
+		// The picker markup above is rendered once, from the quotation as loaded. An
+		// address changed since then is remembered here so reopening preselects it
+		// rather than the stale original (PR-Foundry/framework#357).
+		const chosen_address = {};
+
 		function get_update_address_dialog() {
 			let d = new frappe.ui.Dialog({
 				title: "Select Address",
@@ -218,6 +223,7 @@ frappe.ready(() => {
 						callback: function(r) {
 							d.hide();
 							if (!r.exc) {
+								chosen_address[address_type] = address_name;
 								$(".cart-tax-items").html(r.message.total);
 								shopping_cart.parent.find(
 									`.address-container[data-address-type="${address_type}"]`
@@ -264,6 +270,13 @@ frappe.ready(() => {
 				get_address_template(type)
 			);
 			// Open with the address in use already chosen, as the page's own cards are.
+			if (chosen_address[type]) {
+				const $wrap = d.$wrapper.find('[data-address-name]');
+				$wrap.removeAttr('data-active');
+				$wrap.filter(function () {
+					return $(this).attr('data-address-name') === chosen_address[type];
+				}).attr('data-active', '');
+			}
 			d.$wrapper.find('[data-active] .address-card').addClass('active');
 
 			d.show();
