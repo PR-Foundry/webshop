@@ -94,6 +94,14 @@ doc_events = {
 			"webshop.webshop.crud_events.tax_rule.validate_use_for_cart.execute",
 		],
 	},
+	# Added here, not as a second `doc_events =` further down: a second assignment
+	# replaces this whole dict and silently drops every hook above (framework#343).
+	"Webshop Settings": {
+		# Google's includedRegionCodes takes at most 15. Refused at save so the operator
+		# finds out while looking at the field, rather than through customers in the
+		# silently dropped countries failing to find their address.
+		"validate": "webshop.webshop.setup.address_search.validate_country_limit",
+	},
 }
 
 has_website_permission = {
@@ -121,12 +129,3 @@ override_whitelisted_methods = {
 # Ensures the checkout address-search country field on every migrate. A Custom Field, so
 # upstream's webshop_settings.json is never edited.
 after_migrate = "webshop.webshop.setup.address_search.after_migrate"
-
-doc_events = {
-	"Webshop Settings": {
-		# Google's includedRegionCodes takes at most 15. Refused at save so the operator
-		# finds out while looking at the field, rather than through customers in the
-		# silently dropped countries failing to find their address.
-		"validate": "webshop.webshop.setup.address_search.validate_country_limit",
-	}
-}
